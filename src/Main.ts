@@ -33,9 +33,14 @@ class Main extends egret.DisplayObjectContainer{
     private loadingView:LoadingUI;
 
     /**
-     * 生成俄罗斯方块图形
+     * 加载游戏开始按钮
      */
-    private loadingView:BlockObj;
+    private startView:StartUI;
+
+    /**
+     * 游戏初始化场景
+     */
+    private gameView:GameUI;
 
     public constructor() {
         super();
@@ -51,138 +56,28 @@ class Main extends egret.DisplayObjectContainer{
         RES.addEventListener(RES.ResourceEvent.CONFIG_COMPLETE,this.onConfigComplete,this);
         RES.loadConfig("resource/resource.json","resource/");
     }
-    /**
-     * 配置文件加载完成,开始预加载preload资源组。
-     */
-    private onConfigComplete(event:RES.ResourceEvent):void{
-        RES.removeEventListener(RES.ResourceEvent.CONFIG_COMPLETE,this.onConfigComplete,this);
-        RES.addEventListener(RES.ResourceEvent.GROUP_COMPLETE,this.onResourceLoadComplete,this);
-        RES.addEventListener(RES.ResourceEvent.GROUP_PROGRESS,this.onResourceProgress,this);
-        RES.loadGroup("preload");
-    }
-    /**
-     * preload资源组加载完成
-     */
-    private onResourceLoadComplete(event:RES.ResourceEvent):void {
-        if(event.groupName=="preload"){
-            this.stage.removeChild(this.loadingView);
-            RES.removeEventListener(RES.ResourceEvent.GROUP_COMPLETE,this.onResourceLoadComplete,this);
-            RES.removeEventListener(RES.ResourceEvent.GROUP_PROGRESS,this.onResourceProgress,this);
-            this.createGameScene();
-        }
-    }
-    /**
-     * preload资源组加载进度
-     */
-    private onResourceProgress(event:RES.ResourceEvent):void {
-        if(event.groupName=="preload"){
-            this.loadingView.setProgress(event.itemsLoaded,event.itemsTotal);
-        }
+    private onConfigComplete(e:egret.Event){
+        this.startView=new StartUI();
+        this.startView.touchEnabled = true;//设置容器是否响应Touch交互
+        this.stage.addChild(this.startView);
+        this.startView.addEventListener(egret.TouchEvent.TOUCH_TAP,this.loadGame,this);
     }
 
-    private textContainer:egret.Sprite;
     /**
-     * 创建游戏场景
+     * 进入游戏去掉开始按钮，注销侦听器
+     * @param e
      */
-    private createGameScene():void{
-
-        var sky:egret.Bitmap = this.createBitmapByName("bgImage");
-        this.addChild(sky);
-        var stageW:number = this.stage.stageWidth;
-        var stageH:number = this.stage.stageHeight;
-        sky.width = stageW;
-        sky.height = stageH;
-
-        var topMask:egret.Shape = new egret.Shape();
-        topMask.graphics.beginFill(0x000000, 0.5);
-        topMask.graphics.drawRect(0, 0, stageW, stageH);
-        topMask.graphics.endFill();
-        topMask.width = stageW;
-        topMask.height = stageH;
-        this.addChild(topMask);
-
-        var icon:egret.Bitmap = this.createBitmapByName("egretIcon");
-        icon.anchorX = icon.anchorY = 0.5;
-        this.addChild(icon);
-        icon.x = stageW / 2;
-        icon.y = stageH / 2 - 60;
-        icon.scaleX = 0.55;
-        icon.scaleY = 0.55;
-
-        var colorLabel:egret.TextField = new egret.TextField();
-        colorLabel.x = stageW / 2;
-        colorLabel.y = stageH / 2 + 50;
-        colorLabel.anchorX = colorLabel.anchorY = 0.5;
-        colorLabel.textColor = 0xffffff;
-        colorLabel.textAlign = "center";
-        colorLabel.text = "Hello Egret";
-        colorLabel.size = 20;
-        this.addChild(colorLabel);
-
-        var textContainer:egret.Sprite = new egret.Sprite();
-        textContainer.anchorX = textContainer.anchorY = 0.5;
-        this.addChild(textContainer);
-        textContainer.x = stageW / 2;
-        textContainer.y = stageH / 2 + 100;
-        textContainer.alpha = 0;
-
-        this.textContainer = textContainer;
-
-        //根据name关键字，异步获取一个json配置文件，name属性请参考resources/resource.json配置文件的内容。
-        RES.getResAsync("description",this.startAnimation,this)
+    private loadGame(e:egret.Event){
+        this.stage.removeChild(this.startView);
+        e.target.removeEventListener(egret.TouchEvent.TOUCH_TAP,this.loadGame,this);
+        this.initGame();
     }
+
     /**
-     * 根据name关键字创建一个Bitmap对象。name属性请参考resources/resource.json配置文件的内容。
+     * 游戏初始化，生成主场景
      */
-    private createBitmapByName(name:string):egret.Bitmap {
-        var result:egret.Bitmap = new egret.Bitmap();
-        var texture:egret.Texture = RES.getRes(name);
-        result.texture = texture;
-        return result;
-    }
-    /**
-     * 描述文件加载成功，开始播放动画
-     */
-    private startAnimation(result:Array<any>):void{
-        var textContainer:egret.Sprite = this.textContainer;
-        var count:number = -1;
-        var self:any = this;
-        var change:Function = function() {
-            count++;
-            if (count >= result.length) {
-                count = 0;
-            }
-            var lineArr = result[count];
+    private initGame(){
 
-            self.changeDescription(textContainer, lineArr);
-
-            var tw = egret.Tween.get(textContainer);
-            tw.to({"alpha":1}, 200);
-            tw.wait(2000);
-            tw.to({"alpha":0}, 200);
-            tw.call(change, this);
-        }
-
-        change();
-    }
-    /**
-     * 切换描述内容
-     */
-    private changeDescription(textContainer:egret.Sprite, lineArr:Array<any>):void {
-        textContainer.removeChildren();
-        var w:number = 0;
-        for (var i:number = 0; i < lineArr.length; i++) {
-            var info:any = lineArr[i];
-            var colorLabel:egret.TextField = new egret.TextField();
-            colorLabel.x = w;
-            colorLabel.anchorX = colorLabel.anchorY = 0;
-            colorLabel.textColor = parseInt(info["textColor"]);
-            colorLabel.text = info["text"];
-            colorLabel.size = 40;
-            textContainer.addChild(colorLabel);
-
-            w += colorLabel.width;
-        }
     }
 }
 
