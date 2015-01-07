@@ -32,6 +32,11 @@ class Main extends egret.DisplayObjectContainer{
      */
     private loadingView:LoadingUI;
 
+    /**
+     * 生成俄罗斯方块图形
+     */
+    private loadingView:BlockObj;
+
     public constructor() {
         super();
         this.addEventListener(egret.Event.ADDED_TO_STAGE,this.onAddToStage,this);
