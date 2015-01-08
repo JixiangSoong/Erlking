@@ -1,5 +1,5 @@
 var game_file_list = [
-    "LoadingUI.js",
+    "GameUI.js",
     "StartUI.js",
     "Main.js"
 ];
