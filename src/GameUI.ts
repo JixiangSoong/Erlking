@@ -5,13 +5,22 @@ class GameUI extends egret.Sprite{
 
     public constructor(){
         super();
+        this.count=new egret.TextField();
+        this.goal=new egret.TextField;
+        this.addChild(this.count);
+        this.addChild(this.goal);
         this.createBlock();
     }
 
     /**
-     * 积分版
+     *  shijian
      */
     public count:egret.TextField;
+
+    /**
+     * 分数
+     */
+    public goal:egret.TextField;
 
     /**
      * 下次显示方快
@@ -28,17 +37,23 @@ class GameUI extends egret.Sprite{
     }
 
     public loadCount(countnum:Number){
-        this.count = new egret.TextField();
-        this.addChild(this.count);
         this.count.size=15;
-        alert(this.count.size);
         this.count.x=351;
         this.count.y=300;
         this.count.width=100;
         this.count.height=100;
         this.count.textAlign = "center";
-        this.count.text="分数为"+countnum;
+        this.count.text="时间:"+countnum;
+    }
 
+    public loadGoals(goalsnum:Number){
+        this.goal.size=15;
+        this.goal.x=351;
+        this.goal.y=350;
+        this.goal.width=100;
+        this.goal.height=100;
+        this.goal.textAlign = "center";
+        this.goal.text="分数:"+goalsnum;
     }
 
 }
